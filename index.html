@@ -3,85 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stella Oracle - 極致の占星術</title>
+    <title>Stella Oracle - 極彩の占星術</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+JP:wght@300;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Noto+Serif+JP:wght@300;600;900&display=swap');
 
         :root {
-            --cosmic-deep: #02020a;
-            --gold-accent: #d4af37;
-            --gold-bright: #f8f1d9;
+            --gold: #f3cf7a;
+            --aurora-1: #4c1d95;
+            --aurora-2: #1e3a8a;
+            --aurora-3: #831843;
         }
 
         body {
             font-family: 'Noto Serif JP', serif;
-            background-color: var(--cosmic-deep);
-            color: #e2e8f0;
+            background: #030310;
+            color: #ffffff;
             margin: 0;
             overflow-x: hidden;
         }
 
         .cinzel { font-family: 'Cinzel', serif; }
 
-        /* 背景アニメーション */
-        .nebula-bg {
+        .cosmic-bg {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: 
-                radial-gradient(circle at 20% 30%, rgba(76, 29, 149, 0.4) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(30, 58, 138, 0.4) 0%, transparent 50%);
+            background: radial-gradient(circle at 50% 50%, #0a0a20 0%, #030310 100%);
+            z-index: -2;
+        }
+
+        .aurora {
+            position: fixed;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle at 30% 30%, rgba(76, 29, 149, 0.3) 0%, transparent 40%),
+                        radial-gradient(circle at 70% 70%, rgba(131, 24, 67, 0.3) 0%, transparent 40%),
+                        radial-gradient(circle at 50% 50%, rgba(30, 58, 138, 0.3) 0%, transparent 50%);
+            filter: blur(80px);
+            animation: aurora-flow 30s ease-in-out infinite alternate;
             z-index: -1;
-            filter: blur(60px);
-            animation: nebulaMove 20s infinite alternate ease-in-out;
         }
 
-        @keyframes nebulaMove {
-            from { transform: scale(1); }
-            to { transform: scale(1.2); }
+        @keyframes aurora-flow {
+            0% { transform: rotate(0deg) scale(1); }
+            100% { transform: rotate(15deg) scale(1.1); }
         }
 
-        .stars-container {
-            position: fixed; inset: 0; z-index: -1; pointer-events: none;
-        }
-
-        .star {
-            position: absolute; background: white; border-radius: 50%;
-            animation: starTwinkle var(--duration) infinite var(--delay);
-        }
-
-        @keyframes starTwinkle {
-            0%, 100% { opacity: 0; transform: scale(0.5); }
-            50% { opacity: 0.8; transform: scale(1.2); }
+        .particle {
+            position: fixed;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.5;
         }
 
         .oracle-card {
-            background: rgba(10, 10, 26, 0.85);
-            backdrop-filter: blur(25px);
-            border: 1px solid rgba(212, 175, 55, 0.25);
-            box-shadow: 0 0 60px rgba(0, 0, 0, 0.9);
+            background: rgba(15, 15, 35, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                        inset 0 0 40px rgba(131, 24, 67, 0.1);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
         }
 
-        .ritual-circle {
-            width: 220px; height: 220px;
-            border: 1px dashed rgba(212, 175, 55, 0.5);
-            border-radius: 50%;
-            animation: rotate 20s linear infinite;
+        .glow-text {
+            text-shadow: 0 0 15px rgba(243, 207, 122, 0.5), 0 0 30px rgba(131, 24, 67, 0.3);
         }
 
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        label {
+            color: #ffffff !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            font-weight: 900;
+            letter-spacing: 0.2em;
+        }
 
-        .fade-in { animation: fadeIn 1.2s ease-out forwards; }
+        select {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 2px solid rgba(243, 207, 122, 0.3) !important;
+            color: #ffffff !important;
+            font-weight: 600;
+            font-size: 1.1rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+        select:focus {
+            border-color: var(--gold) !important;
+            background: rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 0 15px rgba(243, 207, 122, 0.3);
+        }
+        option { background: #1a1a3a; color: white; }
+
+        .btn-divine {
+            background: linear-gradient(135deg, #831843 0%, #4c1d95 50%, #1e3a8a 100%);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .btn-divine::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: rotate-btn 4s linear infinite;
+        }
+        @keyframes rotate-btn { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #030310; }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(#831843, #4c1d95); border-radius: 10px; }
+
+        .fade-in { animation: fadeIn 1s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: var(--gold-accent); }
-        
-        .glow-text {
-            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        .zodiac-icon {
+            filter: drop-shadow(0 0 10px rgba(243, 207, 122, 0.8));
+            width: 100px; height: 100px;
         }
     </style>
 </head>
@@ -91,227 +134,172 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
-        const ZodiacIcon = ({ name, className }) => {
-            const icons = {
-                '牡羊座': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className={className}><path d="M12 22s0-4-2-6c-2-2-7-2-7-8 0-3.5 2.5-6 6-6 2 0 3 1 3 1s1-1 3-1c3.5 0 6 2.5 6 6 0 6-5 6-7 8-2 2-2 6-2 6"/></svg>,
-                '牡牛座': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className={className}><path d="M5 2s-1 6 7 8c8 2 7-8 7-8M12 22a10 10 0 100-20 10 10 0 000 20z"/></svg>,
-                '双子座': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className={className}><path d="M5 2s3 2 7 2 7-2 7-2M5 22s3-2 7-2 7 2 7 2M8 4v16M16 4v16"/></svg>,
-                '蟹座': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className={className}><path d="M12 12c0 3.314-2.686 6-6 6s-4-2.686-4-6c0-3.314 2.686-6 6-6h14M12 12c0-3.314 2.686-6 6-6s4 2.686 4 6c0 3.314-2.686 6-6 6H2"/></svg>,
-                '獅子座': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className={className}><path d="M12 14a3 3 0 100-6 3 3 0 000 6zM12 14c0 4 2 6 5 6s4-2 4-5c0-3-3-4-5-4M9 11c0-6-4-7-5-3-1 3 1 5 4 5"/></svg>,
-                '乙女座': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className={className}><path d="M4 4c0 0 0 16 4 16s4-16 4-16M12 4c0 0 0 16 4 16s4-16 4-16M20 4v12c0 3-2 5-5 5"/></svg>,
-                '天秤座': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className={className}><path d="M3 21h18M5 12s3-4 7-4 7 4 7 4M5 12s3 4 7 4 7-4 7-4M12 8V2M3 18s5-1 9-1 9 1 9 1"/></svg>,
-                '蠍座': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className={className}><path d="M4 4v12c0 2 2 4 4 4M8 4v12c0 2 2 4 4 4M12 4v12c0 2 2 4 4 4 2 0 5-2 5-5l-3 3 3 3"/></svg>,
-                '射手座': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className={className}><path d="M22 2L12 12M22 2h-8M22 2v8M4 20l8-8M18 6L6 18"/></svg>,
-                '山羊座': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className={className}><path d="M3 4s2-2 5-2c3 0 5 3 5 6v10c0 3 3 4 5 2 2-2 3-6 3-6M13 8s-3-2-6-1c-3 1-4 4-3 7 1 3 4 2 6 0"/></svg>,
-                '水瓶座': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className={className}><path d="M2 8l4-4 4 4 4-4 4 4 4-4M2 16l4-4 4 4 4-4 4 4 4-4"/></svg>,
-                '魚座': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className={className}><path d="M4 2s4 10 0 20M20 2s-4 10 0 20M2 12h20M6 6l-3 6 3 6M18 6l3 6-3 6"/></svg>
-            };
-            return icons[name] || null;
+        const firebaseConfig = {
+            apiKey: "AIzaSyBVQjsgj4BcWYUWbGrFwc7DAmrkwdNzUIs",
+            authDomain: "stella-oracle-app.firebaseapp.com",
+            projectId: "stella-oracle-app",
+            storageBucket: "stella-oracle-app.firebasestorage.app",
+            messagingSenderId: "870745531911",
+            appId: "1:870745531911:web:0adbeabbf1d56c7f9eaca2"
         };
 
-        const ZODIAC_DATA = [
-            { sign: '牡羊座', dates: '3.21 - 4.19', element: '火', 
-              basic: '牡羊座のあなたは、宇宙の巨大な歯車が再び回り出す瞬間の、純粋かつ圧倒的な推進力そのものです。何者にも依存せず、自らの直感だけを羅針盤として荒野を突き進む姿は、停滞した世界に「生命の鼓動」を再注入する役割を担っています。周囲が躊躇う深淵を跳び越え、まだ誰も名付けていない地平に一番乗りする喜び。その燃え盛る魂は、挫折さえも次の飛躍のための薪（まき）に変えてしまう強靭さを秘めています。あなたは、運命に支配される者ではなく、自らの意志で運命を彫り刻む開拓者なのです。', 
-              love: '愛においてあなたは、一切の駆け引きを拒絶する「純白の情熱」を捧げます。好きになった瞬間に世界はその人を中心に回り始め、魂の全存在をかけて相手を守り、慈しもうとします。その直球すぎる愛は時に相手を圧倒しますが、あなたの無垢な真心に触れた者は、二度と他の冷めた関係には満足できなくなるでしょう。', 
-              work: 'ゼロからイチを創り出す、あるいは前人未到のプロジェクトを牽引する際に比類なき才能を発揮します。既存のルールに従うよりも、自らルールを創る立場に置かれたとき、あなたのパフォーマンスは極限に達します。瞬発力と勇気が必要な場面において、あなたは組織の救世主となるはずです。', 
-              advice: '燃え盛る炎は、時に自分自身をも焼き尽くしかねません。静寂という名の冷たい水で心を潤し、深呼吸の中に「未来の戦略」を忍ばせる知恵を持つことで、あなたの覇道はより確固たるものになるでしょう。' },
-            { sign: '牡牛座', dates: '4.20 - 5.20', element: '地', 
-              basic: '牡牛座のあなたは、豊かな大地が何千年もかけて宝石を育むような、重厚で確実な時間の守護者です。流行に流されず、自分にとっての「本物」を見極める審美眼は、神から与えられた聖なる才能。五感を通じて世界の美を味わい尽くし、それを形ある「価値」へと変えていく粘り強さは、12星座の中で最も信頼に足るものです。一歩一歩が地を踏みしめる音は、周囲に揺るぎない安心感を与え、あなたが築き上げた城は、決して崩れることのない繁栄の象徴となります。時間を味方につけたとき、あなたは無敵の存在へと昇華します。', 
-              love: '愛とは、時間をかけて醸成されるヴィンテージワインのようなもの。あなたは相手の魂の輪郭をゆっくりと手探りで確かめ、不変の忠誠を誓います。肉体的な充足と精神的な安定の両面で、相手を極上の心地よさで包み込み、一度結んだ絆は墓場まで持っていくほどの深い執着と慈愛に満ちています。', 
-              work: '確実性が求められる金融、芸術、あるいは質の高いものづくりにおいて圧倒的な成果を上げます。短期的な利益に惑わされず、10年後、100年後を見据えた構築ができる唯一の人材。あなたの手を通る仕事はすべて「ブランド」としての格を持ち始め、代替不可能な価値を社会に提供し続けるでしょう。', 
-              advice: '執着は時として、あなたの翼を重くし、飛翔を妨げます。古い皮を脱ぎ捨てるヘビのように、過去の成功や所有物を手放す勇気を持つことで、より巨大な豊かさがあなたの手のひらに流れ込むようになります。' },
-            { sign: '双子座', dates: '5.21 - 6.21', element: '風', 
-              basic: '双子座のあなたは、宇宙を駆け巡る光の粒子であり、情報を媒介する知性のメッセンジャーです。一つの場所、一つの考えに留まることを魂が拒み、常に「まだ見ぬ隣の景色」を求めて意識を拡張し続けます。あなたの二面性は、決して矛盾ではなく、多次元的な視点を同時に持つという高度な知性の現れです。軽やかな会話術で複雑な事象を解きほぐし、人と人を瞬時に繋ぎ合わせる魔法のような力。あなたが通り過ぎた後には、必ず新しい知識の種が蒔かれ、世界はそれまでよりも少しだけ明るく、そして知的になります。', 
-              love: '愛における至上の喜びは、魂を震わせる「対話」の中にあります。肉体的な接触以上に、言葉と情報のキャッチボールで知的な絶頂を感じるタイプ。束縛は死を意味し、自由な翼を許容してくれるパートナーとの間で、火花が散るような刺激に満ちた、飽きることのない関係を生涯楽しみ続けます。', 
-              work: 'メディア、広告、通信、教育、あるいは複数の顔を使い分けるパラレルキャリアが天職です。変化の激しい現代社会において、あなたの適応能力は最強の武器。情報を瞬時に咀嚼し、他者が理解できる形に再構成するプレゼンテーション能力は、あらゆる業界で引く手あまたとなるでしょう。', 
-              advice: '好奇心という名の風は、あなたをどこまでも遠くへ運びますが、時には一つの深淵を深く覗き込むことでしか得られない「真理」があります。情報の量ではなく、その背後にある「重み」を感じ取ったとき、あなたの知性は神の領域へと近づきます。' },
-            { sign: '蟹座', dates: '6.22 - 7.22', element: '水', 
-              basic: '蟹座のあなたは、月の重力に導かれる潮汐（ちょうせき）のように、人々の感情を静かに、しかし強力に動かす「慈愛の源泉」です。冷たい外の世界から大切な人々を守るために築かれたあなたの「殻」の中には、宇宙で最も温かく、豊かな感受性の海が広がっています。他者の心の微かな揺れを、自分の痛みとして感じ取る共感能力は、傷ついた魂を癒やす聖なる力。あなたは、居場所のない者に「家」を与え、孤独な者に「繋がり」を感じさせる、この冷酷な世界における唯一の避難所であり、愛の守護者なのです。', 
-              love: '愛とは無条件の奉仕であり、相手と一体化するほどの深い融合です。あなたはパートナーのために自己を犠牲にすることを厭わず、至れり尽くせりの愛情を注ぎます。あなたの愛に触れた者は、母親の胎内にいたときのような究極の安心感を覚え、その献身に心から膝を屈することになるでしょう。', 
-              work: '人の育成、ケア、生活に密着したビジネス、あるいはコミュニティ運営においてカリスマ的な才能を発揮します。数値やデータではなく、「心」で動く現場において、あなたの直感と包容力は最強のマネジメントツールとなります。あなたがリーダーになれば、そこは単なる組織ではなく「家族」となります。', 
-              advice: '他人の感情を吸い込みすぎると、あなた自身の魂が溺れてしまいます。自分の心を守るための防波堤をしっかりと築き、他人の重荷ではなく、自分自身の幸せのためにそのエネルギーを使う許可を自分に出してあげてください。' },
-            { sign: '獅子座', dates: '7.23 - 8.22', element: '火', 
-              basic: '獅子座のあなたは、暗闇を切り裂く真昼の太陽であり、天性の輝きを放つ王者の魂を持っています。あなたがその場に現れるだけで空気が華やぎ、人々の視線が自然と集まるのは、前世から受け継いだ高貴なカリスマの証。自らの人生という舞台で、主演・監督・脚本のすべてをこなし、ドラマチックな展開を自ら創り出す創造性は、他者に生きる喜びと勇気を与えます。誇り高く、気高く、そして子供のような無垢な遊び心を持ち続けるあなた。その存在そのものが、世界に対する力強い「肯定」であり、最高のエンターテインメントなのです。', 
-              love: '愛においてあなたは、最も贅沢で、最も情熱的な演出家となります。愛する人に最高の自分を見せ、相手を世界で一番幸せな主役にしようと努めます。その誇り高き愛は時に独占欲として現れますが、それは相手を自分の一部として深く尊重しているからこそ。あなたは愛の力で相手を「光の騎士」や「王妃」に変えてしまう魔法使いです。', 
-              work: '経営、舞台、企画、あるいは自らの名前がブランドになるような仕事でこそ真価を発揮します。誰かの下で働くよりも、自らが旗振り役となり、周囲の熱量を高めていく役割が最適。賞賛こそがあなたの最大のエネルギー源であり、喝采を浴びるほどにあなたの才能は無限に拡大していきます。', 
-              advice: '真の王者は、孤独を知る者です。周囲の評価という鏡に頼らず、誰も見ていないところでも自分を誇れる「内なる尊厳」を育ててください。あなたの光が内側から満ち溢れたとき、それはもはや何者にも消せない永遠の太陽となります。' },
-            { sign: '乙女座', dates: '8.23 - 9.22', element: '地', 
-              basic: '乙女座のあなたは、宇宙の混沌を整え、美しき秩序を再構築する「知性の庭師」です。鋭い観察眼と精密な分析力は、神が創造の仕上げに用いた道具のよう。他人が見逃すような微かな不調和を敏感に察知し、それを完璧な調和へと導くあなたの手腕は、この世界のクオリティを底上げする聖なる職能です。控えめでありながら、その背後にある計り知れない努力と、純粋な奉仕の精神。あなたが整えた環境は、鏡のように磨き抜かれ、そこに関わるすべての人々に規律ある安らぎと、知的で洗練された空気をもたらします。', 
-              love: '愛とは日々の積み重ねであり、細やかな気遣いの集大成。言葉で「愛してる」と叫ぶよりも、相手が心地よく過ごせるように環境を整え、健康を気遣い、誠実に寄り添うことに真実の愛を見出します。あなたの愛は派手ではありませんが、その純度はダイヤモンドのように高く、知れば知るほど手放せなくなる深みがあります。', 
-              work: '医療、編集、分析、精密機器、あるいは高度な管理業務。1ミリの誤差も許されない状況下で、あなたの冷静さと正確さは神話的な信頼を勝ち取ります。あなたが「YES」と言えば、それは世界で最も確実な保証。プロフェッショナルとしての誇りが、あなたのキャリアを類稀なる高みへと押し上げるでしょう。', 
-              advice: '完璧主義は、時にあなた自身を追い詰める毒となります。不完全なもの、歪んだものの中にある美しさを見つけ、そこに「余白」を許すことで、あなたの人生はより豊かで、血の通った温かな物語へと進化していきます。' },
-            { sign: '天秤座', dates: '9.23 - 10.23', element: '風', 
-              basic: '天秤座のあなたは、世界の美しき均衡を司る「調和の外交官」です。対立する二つの力の間に立ち、どちらにも偏ることなく最適解を見出すそのバランス感覚は、洗練された知性の極致。あなたの周りには常に優雅で軽やかな空気が流れ、殺伐とした空間さえも、あなたの存在一つで社交場のような華やぎを取り戻します。審美眼に優れ、ファッションや空間、そして人間関係に至るまで、醜いものを避け、美しく調和の取れた状態を維持しようとするその姿勢は、この世界を品位ある場所へと導く美の守護者なのです。', 
-              love: '愛とは、二人の魂が織りなす極上の社交。激しすぎる感情の爆発を避け、常に理性的で美しい関係を求めます。相手の長所を誰よりも早く見抜き、それを洗練された言葉で称賛するあなたは、最高のパートナー。二人で築く生活は、洗練されたインテリアのように調和が取れ、周囲から羨望の眼差しを浴びる理想的なものになるでしょう。', 
-              work: 'デザイン、法律、広報、ファッション、あるいは仲介交渉。美意識と公正さが求められる場面で、あなたの右に出る者はいません。客観的な視点を保ちつつ、関係者全員が納得する「美しい着地点」を見出す能力は、現代の複雑な社会において平和を維持するための必須スキルです。', 
-              advice: '他人の顔色を伺い、調和を優先するあまり、自分自身の「本音」を置き去りにしていませんか？ 誰にも嫌われないための選択ではなく、自分が心から愛せる「一点」のために、時にはバランスを崩してでも深く踏み込む勇気を持ってください。' },
-            { sign: '蠍座', dates: '10.24 - 11.22', element: '水', 
-              basic: '蠍座のあなたは、深淵の底に眠る真実の火を守る「神秘の司祭」です。表面的な欺瞞や社交辞令を、その冷徹かつ鋭い洞察力で一瞬にして見抜き、物事の核心へと直行します。あなたのエネルギーは12星座で最も凝縮されており、一度狙いを定めた対象には、魂の全存在をかけて取り組む爆発的な集中力を持っています。死と再生、絶望と救済。極限状態においてこそ、あなたの真の力は解放され、ボロボロになった現状から不死鳥のように新しい生命を産み落とすことができるのです。あなたの沈黙は、雄弁な言葉よりも多くの真実を語ります。', 
-              love: '愛とは、魂の完全な融合であり、命がけの契約です。蠍座の愛に「適当」という言葉はありません。相手のすべてを所有し、同時に自分のすべてを捧げる、究極の絆を求めます。その深い愛情は時に激しい嫉妬や執着に変わりますが、それは相手を宇宙で唯一無二の存在として認めている証。あなたの愛を一度受けた者は、他のどんな愛も薄っぺらに感じてしまうでしょう。', 
-              work: '秘密を扱う業務、専門性の高い研究、心理学、金融、あるいは調査。他人が怖気づくような深部まで掘り下げ、誰も到達できなかった成果を掴み取ります。あなたのカリスマ性は「影の支配者」的なポジションで最大化され、組織の根幹を動かす不可欠な存在として君臨するでしょう。', 
-              advice: '復讐心や恨みのエネルギーは強力ですが、それはあなた自身をも蝕みます。過去の傷を「許し」の光で浄化し、その強大なエネルギーを「癒やし」や「建設」に向けたとき、あなたは世界を変えるほどの偉大な指導者になれるはずです。' },
-            { sign: '射手座', dates: '11.23 - 12.21', element: '火', 
-              basic: '射手座のあなたは、銀河の果てまで射抜く矢のように、常に「真理」と「自由」を求めて飛翔し続ける、魂のハンターです。目に見える現実よりも、その背後にある壮大な哲学や、未知の文化、精神的な高みにこそ、あなたの居場所はあります。楽天主義という名の最強の鎧をまとい、どんな困難な状況下でも「なんとかなる」と笑い飛ばすあなたの姿は、絶望に沈む人々に希望の灯を点すでしょう。束縛はあなたの翼を殺す毒。広い世界を舞台に、常に変化し、学び、冒険し続けることこそが、あなたの生命力そのものなのです。', 
-              love: '愛におけるあなたは、共に未知の世界へ駆け出していく「冒険のパートナー」を求めます。ベタベタとした依存関係よりも、互いの自由を尊重し、刺激的な会話と新しい体験を共有できる関係が理想。追いかけている間が最高に燃え上がりますが、共に精神的な成長を目指せる相手となら、生涯飽きることなく走り抜けることができます。', 
-              work: '出版、宗教、海外関連、学問、あるいはフリーランス。特定の枠組みに収まることを拒み、広い視野でダイナミックに物事を進める仕事が最適です。あなたの持つポジティブな直感と、大胆な決断力は、停滞したプロジェクトに驚異的なスピード感を与え、誰も予想しなかった大成功へと導きます。', 
-              advice: '遠くを見つめる目は鋭いですが、足元の小さな石につまずきやすい傾向があります。理想を語るのと同じ熱量で、現実的な詳細やルーチンワークにも注意を払うことで、あなたの放った矢は、より確実に対象の核心を射抜くことになるでしょう。' },
-            { sign: '山羊座', dates: '12.22 - 1.19', element: '地', 
-              basic: '山羊座のあなたは、峻険な氷の山を、一歩ずつ、しかし確実に登り続ける「静かなる覇者」です。時間と努力を最大の味方につけ、誰もが不可能と思うような堅固な成果を築き上げるその姿は、社会を支える最後にして最強の砦。あなたの野心は、一時的な名声のためではなく、永遠に残る「秩序」と「伝統」を創り出すためのものです。感情に流されず、冷静に状況を分析し、最適かつ最短のルートを選び取る冷徹なまでのプロ意識。あなたが頂上に立ったとき、その景色はそれまでのすべての苦労を正当化するほどの、圧倒的な栄光に満ち溢れているはずです。', 
-              love: '愛とは、責任と信頼に基づく強固な契約。一時の情熱よりも、10年後、20年後も隣で笑っていられる安定感を重視します。不器用で言葉足らずな面もありますが、行動で示す誠実さは12星座随一。あなたが一度愛した者は、あなたの提供する絶対的な安全地帯の中で、心から守られている実感を噛みしめることになります。', 
-              work: '経営、政治、不動産、管理職、あるいは伝統芸能。組織を統率し、ルールを作り、結果を出し続ける立場において、あなたの右に出る者はいません。困難であればあるほどあなたの闘志は静かに燃え上がり、最終的には必ず「勝者」として歴史に名を刻むことでしょう。', 
-              advice: '「役に立たなければ価値がない」という強迫観念を捨ててください。何も生み出さない、ただのあなた自身にも、宇宙的な価値があるのです。時には重い荷物を下ろし、無邪気に笑う時間を自分に許すことで、山登りはもっと楽しいものになります。' },
-            { sign: '水瓶座', dates: '1.20 - 2.18', element: '風', 
-              basic: '水瓶座のあなたは、未来から誤ってこの時代に送り込まれた、孤独な革新者にして友愛の伝道師です。常識という名の古い衣を脱ぎ捨て、誰もが平等に、かつ個性的に生きられる理想郷（エデン）を夢想しています。あなたの独創性は、時に周囲に「変人」というレッテルを貼らせますが、それはあなたが時代を先取りしすぎている証拠。国境、人種、性別といった一切の境界線を無効化し、魂という共通言語で世界を繋ごうとするあなたの視座は、神の視点に近いものです。あなたは、停滞した人類の意識を強制的にアップデートする「閃光」そのものです。', 
-              love: '愛におけるキーワードは「最高の友人」であること。嫉妬や独占欲といったドロドロした感情を嫌い、知的な共感と自立した個性を尊重し合える関係を築きます。あなたの愛は宇宙のように広大ですが、特定の誰かに対する「執着」は薄め。しかし、一度魂の波長が合った相手とは、時空を超えた深い精神的絆で結ばれ続けるでしょう。', 
-              work: 'IT、宇宙開発、NGO、アート、発明、占星術。まだ定義されていない新しいジャンルを切り拓くことが得意です。誰かの真似をすることを魂が拒絶するため、唯一無二のポジションを築くことになります。あなたの独創的なアイデアは、社会の古いシステムを破壊し、より合理的な未来へと導く楔（くさび）となります。', 
-              advice: '理屈は正しいですが、人間の心は必ずしも理屈で動くものではありません。他者の「感情的な弱さ」を切り捨てず、あえて非合理な感情の渦に足を踏み入れることで、あなたの理想はより多くの人々に届く、真の救いへと変わっていきます。' },
-            { sign: '魚座', dates: '2.19 - 3.20', element: '水', 
-              basic: '魚座のあなたは、12星座のすべての経験を内包し、最後にすべてを許し、溶け合わせる「宇宙の調和者」です。この物理的な世界のルールよりも、夢、幻想、芸術、そして愛という目に見えない世界のリアリティを深く信じています。境界線を持たないあなたの魂は、他者の悲しみも世界の痛みもすべて自分のこととして受け入れ、慈愛の涙で浄化してしまいます。現実離れしたその危うさは、この殺伐とした世界における唯一の「救い」であり、人々に「目に見えない豊かさ」を思い出させる、地上に降り立った天使のような存在なのです。', 
-              love: '愛とは、自分を消して相手と溶け合う神秘体験。あなたは愛する人のためなら、自分のアイデンティティさえも捧げ、相手の色に染まることを厭いません。その無私無欲の愛は、受ける側に「神の救済」を感じさせますが、同時にあなたなしでは生きていけないという強烈な陶酔感を与えます。あなたの愛は、魂の傷を癒やす究極の聖水です。', 
-              work: '芸術、カウンセリング、ヒーリング、福祉、あるいはスピリチュアルな分野。直感だけで物事の本質を掴み取る能力は、論理的な努力を嘲笑うほどの的中率を誇ります。あなたが関わる仕事には、必ず「祈り」に似た深みが宿り、触れる人々の心を激しく揺さぶり、深い感動を与えることでしょう。', 
-              advice: '他人のために自分を使い果たさないでください。NOと言えない優しさは、時に自分自身を迷子にさせます。一日のうちの数時間だけでも、世俗のノイズを完全に遮断する時間を持ち、自分の魂の輪郭を確かめる「聖なる孤独」を大切にしてください。' }
-        ];
+        let auth, db;
+        try {
+            const app = firebase.apps.length === 0 ? firebase.initializeApp(firebaseConfig) : firebase.app();
+            auth = firebase.auth();
+            db = firebase.firestore();
+        } catch (err) {}
 
-        const COMP_RESULTS = {
-            '火-火': { score: 91, title: '天をも焦がす双生の劫火', bond: '二つの情熱が重なり合い、単なる足し算ではなく乗算のエネルギーを生み出す組み合わせです。', mental: '言葉を尽くさずとも、瞬時に相手の意図を汲み取り、同じ未来のヴィジョンを共有できます。', action: '二人が揃えば、不可能と思われた壁も瞬時に突破し、周囲を巻き込む熱狂的な渦を創り出すでしょう。', trial: '双方が「自分が主導権を握りたい」と願うため、一歩も譲らない衝突が起きたときは宇宙規模の爆発になります。', oracle: '競い合うのではなく、お互いの背中を守る「戦友」としての意識が、関係を永遠のものにします。' },
-            '地-地': { score: 98, title: '永遠不滅を誓いし大地の結晶', bond: '12星座の組み合わせの中で、最も盤石で、最も繁栄を約束された至高のペアリングです。', mental: '価値観の根底が一致しており、無言で過ごす時間さえも、魂を充填する至福の安らぎとなります。', action: '確実に資産を築き、最高に洗練された生活環境を作り上げ、周囲に羨望される「理想の家庭・組織」を構築します。', trial: '安定を求めるあまり変化を恐れ、外の世界の風を遮断してしまう「閉鎖性」にだけは注意が必要です。', oracle: '時折、予定外の旅に出るなどの「揺らぎ」を取り入れることで、二人の絆はより生命力に満ちたものになります。' },
-            '風-風': { score: 94, title: '銀河を駆け抜ける知性の舞踏', bond: '重力から解放された二つの知性が、情報の宇宙を自由に駆け巡るような軽やかで美しい関係です。', mental: '最新のトピック、哲学的な議論、皮肉の効いたユーモア。会話を交わすたびに、二人の知能指数は高まり続けます。', action: '形に囚われない自由なパートナーシップを築き、古い常識に縛られている人々を驚かせるような革新的な生き方を提示します。', trial: '感情的な泥臭いやり取りを避ける傾向があるため、本当に辛いときに「弱さ」を出し合う練習が必要です。', oracle: '言葉の裏側にある「震える心」を、論理ではなく直感で抱きしめる勇気を持ってください。' },
-            '水-水': { score: 96, title: '聖なる深淵にて溶け合う魂の原液', bond: '肉体の境界線さえも曖昧になり、一つの巨大な感情の海に回帰していくような、神秘的で深い融合です。', mental: '一人が悲しめばもう一人も涙し、一人が喜べばもう一人も満たされる。究極の共感と、慈愛のループ。', action: '世俗的な成功よりも、二人の心の平安と精神的な豊かさを最優先し、愛に満ちた美しい聖域を守り抜きます。', trial: 'お互いの感情に飲み込まれ、現実的な問題（経済や健康管理）を放置して共倒れにならないよう自制心が必要です。', oracle: '海から陸へ上がる時間を持つように、時には現実のルールを意識することが、二人の愛を長続きさせます。' },
-            'default': { score: 78, title: '異質なる旋律が織りなす新世界', bond: '全く異なる性質が出会うことで、自分の中には存在しなかった「未知の可能性」を補完し合う教育的な絆です。', mental: '理解できない部分を「不快」ではなく「神秘」として捉え直したとき、二人の関係は劇的に進化します。', action: '一人が夢を描き、もう一人がそれを形にする。異なる才能をパズルのように組み合わせ、奇跡を起こします。', trial: '「自分の常識は相手の非常識」であることを肝に銘じ、徹底的な対話と歩み寄りを怠らないことが不可欠です。', oracle: '違いを埋めるのではなく、その「溝」に咲く珍しい花を二人で愛でる余裕を持ってください。' }
+        const ZODIAC_SYMBOLS = {
+            "牡羊座": "♈", "牡牛座": "♉", "双子座": "♊", "蟹座": "♋",
+            "獅子座": "♌", "乙女座": "♍", "天秤座": "♎", "蠍座": "♏",
+            "射手座": "♐", "山羊座": "♑", "水瓶座": "♒", "魚座": "♓"
         };
 
-        const StarField = () => {
-            const stars = useMemo(() => [...Array(150)].map((_, i) => ({
-                id: i, top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%`,
-                size: `${Math.random() * 2 + 0.5}px`, duration: `${Math.random() * 3 + 2}s`, delay: `${Math.random() * 5}s`
+        const Particles = () => {
+            const items = useMemo(() => Array.from({ length: 80 }).map(() => ({
+                id: Math.random(),
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                size: `${Math.random() * 3 + 1}px`,
+                duration: `${Math.random() * 10 + 5}s`,
+                delay: `${Math.random() * 5}s`
             })), []);
             return (
-                <div className="stars-container">
-                    {stars.map(s => (
-                        <div key={s.id} className="star" style={{
-                            top: s.top, left: s.left, width: s.size, height: s.size,
-                            '--duration': s.duration, '--delay': s.delay
-                        }} />
+                <div className="fixed inset-0 pointer-events-none">
+                    {items.map(p => (
+                        <div key={p.id} className="particle animate-pulse" 
+                             style={{ left: p.left, top: p.top, width: p.size, height: p.size, animationDuration: p.duration, animationDelay: p.delay }} />
                     ))}
+                </div>
+            );
+        };
+
+        const DatePicker = ({ label, date, setDate }) => {
+            const years = Array.from({ length: 80 }, (_, i) => 2025 - i);
+            const months = Array.from({ length: 12 }, (_, i) => i + 1);
+            const days = Array.from({ length: 31 }, (_, i) => i + 1);
+
+            return (
+                <div className="space-y-4">
+                    <label className="text-sm tracking-[0.3em] font-black uppercase text-white block">{label}</label>
+                    <div className="grid grid-cols-3 gap-3">
+                        <select value={date.year} onChange={e => setDate({...date, year: e.target.value})} className="p-4 rounded-xl">
+                            <option value="">年</option>
+                            {years.map(y => <option key={y} value={y}>{y}年</option>)}
+                        </select>
+                        <select value={date.month} onChange={e => setDate({...date, month: e.target.value})} className="p-4 rounded-xl">
+                            <option value="">月</option>
+                            {months.map(m => <option key={m} value={m}>{m}月</option>)}
+                        </select>
+                        <select value={date.day} onChange={e => setDate({...date, day: e.target.value})} className="p-4 rounded-xl">
+                            <option value="">日</option>
+                            {days.map(d => <option key={d} value={d}>{d}日</option>)}
+                        </select>
+                    </div>
                 </div>
             );
         };
 
         function App() {
             const [view, setView] = useState('input');
-            const [mode, setMode] = useState('individual');
-            const [data, setData] = useState({ m1: '', d1: '', m2: '', d2: '' });
+            const [mode, setMode] = useState('single');
+            const [date1, setDate1] = useState({ year: '', month: '', day: '' });
+            const [date2, setDate2] = useState({ year: '', month: '', day: '' });
             const [loading, setLoading] = useState(0);
             const [result, setResult] = useState(null);
+            const [user, setUser] = useState(null);
+
+            useEffect(() => {
+                if (!auth) return;
+                const login = async () => {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await auth.signInWithCustomToken(__initial_auth_token);
+                    } else { await auth.signInAnonymously(); }
+                };
+                login();
+                const unsubscribe = auth.onAuthStateChanged(setUser);
+                return () => unsubscribe();
+            }, []);
 
             const getZodiac = (m, d) => {
-                const mm = parseInt(m); const dd = parseInt(d);
-                if (!mm || !dd) return null;
-                if ((mm === 3 && dd >= 21) || (mm === 4 && dd <= 19)) return '牡羊座';
-                if ((mm === 4 && dd >= 20) || (mm === 5 && dd <= 20)) return '牡牛座';
-                if ((mm === 5 && dd >= 21) || (mm === 6 && dd <= 21)) return '双子座';
-                if ((mm === 6 && dd >= 22) || (mm === 7 && dd <= 22)) return '蟹座';
-                if ((mm === 7 && dd >= 23) || (mm === 8 && dd <= 22)) return '獅子座';
-                if ((mm === 8 && dd >= 23) || (mm === 9 && dd <= 22)) return '乙女座';
-                if ((mm === 9 && dd >= 23) || (mm === 10 && dd <= 23)) return '天秤座';
-                if ((mm === 10 && dd >= 24) || (mm === 11 && dd <= 22)) return '蠍座';
-                if ((mm === 11 && dd >= 23) || (mm === 12 && dd <= 21)) return '射手座';
-                if ((mm === 12 && dd >= 22) || (mm === 1 && dd <= 19)) return '山羊座';
-                if ((mm === 1 && dd >= 20) || (mm === 2 && dd <= 18)) return '水瓶座';
-                if ((mm === 2 && dd >= 19) || (mm === 3 && dd <= 20)) return '魚座';
-                return null;
+                const month = parseInt(m);
+                const day = parseInt(d);
+                if ((month == 3 && day >= 21) || (month == 4 && day <= 19)) return "牡羊座";
+                if ((month == 4 && day >= 20) || (month == 5 && day <= 20)) return "牡牛座";
+                if ((month == 5 && day >= 21) || (month == 6 && day <= 21)) return "双子座";
+                if ((month == 6 && day >= 22) || (month == 7 && day <= 22)) return "蟹座";
+                if ((month == 7 && day >= 23) || (month == 8 && day <= 22)) return "獅子座";
+                if ((month == 8 && day >= 23) || (month == 9 && day <= 22)) return "乙女座";
+                if ((month == 9 && day >= 23) || (month == 10 && day <= 23)) return "天秤座";
+                if ((month == 10 && day >= 24) || (month == 11 && day <= 22)) return "蠍座";
+                if ((month == 11 && day >= 23) || (month == 12 && day <= 21)) return "射手座";
+                if ((month == 12 && day >= 22) || (month == 1 && day <= 19)) return "山羊座";
+                if ((month == 1 && day >= 20) || (month == 2 && day <= 18)) return "水瓶座";
+                return "魚座";
             };
 
-            const runOracle = () => {
-                if (!data.m1 || !data.d1) return;
-                if (mode === 'compatibility' && (!data.m2 || !data.d2)) return;
-
+            const handleOracle = () => {
                 setView('loading');
-                let progress = 0;
+                let p = 0;
                 const timer = setInterval(() => {
-                    progress += 1;
-                    setLoading(progress);
-                    if (progress >= 100) {
+                    p += 2;
+                    setLoading(p);
+                    if (p >= 100) {
                         clearInterval(timer);
-                        const s1 = ZODIAC_DATA.find(z => z.sign === getZodiac(data.m1, data.d1));
-                        let s2 = null;
-                        let comp = null;
-                        if (mode === 'compatibility') {
-                            s2 = ZODIAC_DATA.find(z => z.sign === getZodiac(data.m2, data.d2));
-                            const key = s1.element === s2.element ? `${s1.element}-${s2.element}` : 'default';
-                            comp = COMP_RESULTS[key] || COMP_RESULTS['default'];
-                        }
-                        setResult({ s1, s2, comp });
+                        const s1 = getZodiac(date1.month, date1.day);
+                        const s2 = mode === 'compatibility' ? getZodiac(date2.month, date2.day) : null;
+                        
+                        setResult({
+                            sign1: s1, sign2: s2,
+                            oracle: {
+                                soul: "あなたの魂は、現在、宇宙の広大な知性とダイレクトに繋がるリンクを形成しています。これまでの経験はすべて、この瞬間にあなたが真の光を放つための準備でした。土星の重圧は消え去り、木星の恩恵があなたのオーラを包み込んでいます。今のあなたは、思考が現実化するスピードが極めて速くなっており、一瞬の直感が一生の運命を左右するほどの力を持っています。内なる静寂の中に、すべての答えが用意されています。あなたはただ、その声に耳を傾け、星々が描く航路に身を任せるだけで良いのです。過去の痛みは知恵へと昇華し、未来への不安は無限の可能性へと姿を変えています。",
+                                fortune: "運命の歯車が大きく回転を始めました。特に人間関係や社会的地位において、予期せぬ扉が開かれるでしょう。これは偶然ではなく、あなたが長年積み上げてきた徳の報いです。金銭的な流れも浄化され、滞っていたエネルギーがスムーズに循環し始めます。迷った時は、常に『愛』に基づいた選択をしてください。そうすることで、宇宙はあなたに想像を超える豊かさを提供し続けるでしょう。",
+                                daily: "日々の生活においては、色彩を意識することが運気をさらに高めます。特に藍色やゴールドを身近に置くことで、直感力が鋭敏になります。呼吸を整え、足の裏から大地のエネルギーを吸収し、頭頂部から宇宙の光を受け取るイメージを持ってください。あなたの存在そのものが、周囲を癒す聖域となるでしょう。",
+                                // 個人鑑定用の拡張項目
+                                mental: "精神の深淵において、あなたは極めて独自の美学と倫理観を育んでいます。表面的な喧騒に惑わされることなく、真理を追求するその姿勢は、銀河の星々が持つ秩序そのものです。あなたの内側には「聖域」が存在し、そこへ立ち戻るたびにエネルギーが再充填されます。この時期、自身の思考を言語化し、形を与えることで、内なる平和はより強固なものとなるでしょう。",
+                                social: "社会という大きな天球儀の中で、あなたのポジションは「先導者」あるいは「賢者」へとシフトしています。人々はあなたの言葉に重みを感じ、あなたの行動に無意識の安心感を覚えています。リーダーシップを発揮する場面では、威圧ではなく『共感』を武器にしてください。それが結果的に、あなたの社会的評価を揺るぎないものとし、望んでいた高みへとあなたを押し上げる契機となります。",
+                                love: "情愛の領域では、宇宙はあなたに「無条件の受容」というレッスンを提示しています。自らを愛し、許すことができた時、周囲からの愛もまた、遮られることなくあなたへと流れ込みます。特定のパートナーがいる場合は、言葉を超えた魂の対話を。いない場合は、自分自身との結婚を誓うような深い自己肯定を。愛は外から来るものではなく、あなたの内側から溢れ出し、世界を浸していくものです。",
+                                key: "あなたが直面する試練は、実はあなたを制限するためのものではなく、あなたを「解放」するための仕掛けです。壁に見えるものは、実は次のステージへの扉です。困難を感じたときこそ、視点を銀河の彼方まで広げてください。小さなこだわりを捨て去った瞬間、重力から解き放たれたかのように、あなたの問題は自ずと解決へと向かいます。鍵は常に、あなたの掌の中にあります。"
+                            },
+                            comp: mode === 'compatibility' ? [
+                                { title: "精神的共鳴度", val: "98%", desc: "二人の精神は同じ周波数で振動しています。初めて会った時から懐かしさを感じたのは、魂の記憶が共鳴しているからです。" },
+                                { title: "宿命的引力", val: "85%", desc: "どんなに道が分かれても、最終的には一つの場所へ辿り着く強固な結びつきです。宇宙的な磁力が二人を常に引き寄せています。" },
+                                { title: "現実の調和", val: "72%", desc: "価値観の違いさえも、お互いを補完するピースとなります。二人が協力すれば、不可能を可能にする奇跡を起こせるでしょう。" },
+                                { title: "性的・本能的結合", val: "91%", desc: "理屈を超えた本能的なレベルで深く結びついています。触れ合うだけでエネルギーが循環し、癒しが起こります。" }
+                            ] : null,
+                            final: mode === 'compatibility' ? "二人の関係は、宇宙が織りなす最高傑作の一つです。信じる心を灯火に、共に果てなき旅路を歩んでください。" : "あなたは銀河に輝く唯一無二の宝石です。その輝きを信じ、光の差す方へ進んでください。"
+                        });
                         setView('result');
                     }
                 }, 40);
             };
 
             return (
-                <div className="min-h-screen relative flex items-center justify-center p-4">
-                    <div className="nebula-bg"></div>
-                    <StarField />
+                <div className="min-h-screen relative flex flex-col items-center justify-center p-6 pb-20">
+                    <div className="cosmic-bg" />
+                    <div className="aurora" />
+                    <Particles />
 
-                    <div className="w-full max-w-4xl z-10">
+                    <div className="w-full max-w-5xl z-10">
                         {view === 'input' && (
-                            <div className="oracle-card p-12 rounded-[2.5rem] text-center fade-in">
-                                <h1 className="cinzel text-5xl mb-4 text-transparent bg-clip-text bg-gradient-to-b from-[#f8f1d9] to-[#d4af37] tracking-wider glow-text">STELLA ORACLE</h1>
-                                <p className="text-gold-accent/60 tracking-[0.6em] text-xs mb-14 font-bold">― 運命の刻印を読み解く、最果ての鑑定所 ―</p>
+                            <div className="oracle-card p-10 md:p-20 rounded-[3rem] text-center fade-in">
+                                <h1 className="cinzel text-5xl md:text-8xl mb-4 font-black tracking-widest glow-text bg-clip-text text-transparent bg-gradient-to-b from-white to-gold">STELLA ORACLE</h1>
+                                <p className="text-pink-400 text-[10px] tracking-[1em] mb-16 uppercase font-bold italic">Chromatic Galactic Divination</p>
 
-                                <div className="flex justify-center gap-4 mb-16">
-                                    <button 
-                                        onClick={() => setMode('individual')} 
-                                        className={`px-8 py-3 rounded-xl border transition-all duration-500 text-sm font-bold tracking-widest ${
-                                            mode === 'individual' 
-                                            ? 'bg-gold-accent text-black border-gold-accent shadow-[0_0_20px_rgba(212,175,55,0.4)]' 
-                                            : 'border-white/20 text-white/80 hover:border-gold-accent/50 bg-white/5'
-                                        }`}>
-                                        個人鑑定
-                                    </button>
-                                    <button 
-                                        onClick={() => setMode('compatibility')} 
-                                        className={`px-8 py-3 rounded-xl border transition-all duration-500 text-sm font-bold tracking-widest ${
-                                            mode === 'compatibility' 
-                                            ? 'bg-gold-accent text-black border-gold-accent shadow-[0_0_20px_rgba(212,175,55,0.4)]' 
-                                            : 'border-white/20 text-white/80 hover:border-gold-accent/50 bg-white/5'
-                                        }`}>
-                                        相性鑑定
-                                    </button>
+                                <div className="flex justify-center gap-10 mb-16">
+                                    <button onClick={() => setMode('single')} className={`py-3 px-8 text-xs tracking-widest font-black transition-all rounded-full ${mode === 'single' ? 'bg-white text-indigo-900' : 'text-white/40 border border-white/10'}`}>鑑定</button>
+                                    <button onClick={() => setMode('compatibility')} className={`py-3 px-8 text-xs tracking-widest font-black transition-all rounded-full ${mode === 'compatibility' ? 'bg-white text-indigo-900' : 'text-white/40 border border-white/10'}`}>相性</button>
                                 </div>
 
-                                <div className="max-w-sm mx-auto space-y-10">
-                                    <div className="space-y-4">
-                                        <p className="text-[10px] text-gold-accent tracking-[0.4em] font-bold uppercase">第一の魂の生誕日</p>
-                                        <div className="flex gap-6">
-                                            <div className="flex-1 relative">
-                                                <input type="number" placeholder="月" value={data.m1} onChange={e=>setData({...data, m1:e.target.value})} className="w-full bg-white/5 border-b-2 border-gold-accent/30 p-4 text-2xl text-center text-white outline-none focus:border-gold-accent transition-colors" />
-                                                <span className="absolute bottom-1 right-2 text-[10px] text-gold-accent/40">MONTH</span>
-                                            </div>
-                                            <div className="flex-1 relative">
-                                                <input type="number" placeholder="日" value={data.d1} onChange={e=>setData({...data, d1:e.target.value})} className="w-full bg-white/5 border-b-2 border-gold-accent/30 p-4 text-2xl text-center text-white outline-none focus:border-gold-accent transition-colors" />
-                                                <span className="absolute bottom-1 right-2 text-[10px] text-gold-accent/40">DAY</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {mode === 'compatibility' && (
-                                        <div className="space-y-4 fade-in">
-                                            <p className="text-[10px] text-gold-accent tracking-[0.4em] font-bold uppercase">第二の魂の生誕日</p>
-                                            <div className="flex gap-6">
-                                                <div className="flex-1 relative">
-                                                    <input type="number" placeholder="月" value={data.m2} onChange={e=>setData({...data, m2:e.target.value})} className="w-full bg-white/5 border-b-2 border-gold-accent/30 p-4 text-2xl text-center text-white outline-none focus:border-gold-accent transition-colors" />
-                                                    <span className="absolute bottom-1 right-2 text-[10px] text-gold-accent/40">MONTH</span>
-                                                </div>
-                                                <div className="flex-1 relative">
-                                                    <input type="number" placeholder="日" value={data.d2} onChange={e=>setData({...data, d2:e.target.value})} className="w-full bg-white/5 border-b-2 border-gold-accent/30 p-4 text-2xl text-center text-white outline-none focus:border-gold-accent transition-colors" />
-                                                    <span className="absolute bottom-1 right-2 text-[10px] text-gold-accent/40">DAY</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <button onClick={runOracle} className="w-full py-6 rounded-2xl bg-gradient-to-r from-[#b8860b] to-[#d4af37] text-black font-black text-base tracking-[0.5em] hover:brightness-110 active:scale-95 transition-all shadow-xl">
-                                        運 命 の 扉 を 開 く
+                                <div className="max-w-md mx-auto space-y-12">
+                                    <DatePicker label="汝の生年月日" date={date1} setDate={setDate1} />
+                                    {mode === 'compatibility' && <div className="fade-in pt-4"><DatePicker label="相手の生年月日" date={date2} setDate={setDate2} /></div>}
+                                    
+                                    <button onClick={handleOracle} 
+                                            disabled={!date1.year || (mode==='compatibility' && !date2.year)}
+                                            className="btn-divine w-full py-8 mt-12 rounded-2xl shadow-[0_0_40px_rgba(76,29,149,0.5)] transition-all transform hover:scale-105 active:scale-95 disabled:opacity-20 disabled:scale-100">
+                                        <span className="relative z-10 text-white font-black tracking-[1em] cinzel text-lg">INVOKE FATE</span>
                                     </button>
                                 </div>
                             </div>
@@ -319,104 +307,125 @@
 
                         {view === 'loading' && (
                             <div className="text-center fade-in">
-                                <div className="flex justify-center mb-10">
-                                    <div className="ritual-circle flex items-center justify-center">
-                                        <div className="text-gold-accent cinzel text-3xl font-bold glow-text">{loading}%</div>
+                                <div className="relative w-64 h-64 mx-auto mb-10">
+                                    <svg className="w-full h-full transform -rotate-90">
+                                        <circle cx="128" cy="128" r="120" stroke="rgba(255,255,255,0.05)" strokeWidth="4" fill="transparent" />
+                                        <circle cx="128" cy="128" r="120" stroke="url(#gradient)" strokeWidth="4" fill="transparent" 
+                                                strokeDasharray={754} strokeDashoffset={754 - (754 * loading / 100)} className="transition-all duration-300" />
+                                        <defs>
+                                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                <stop offset="0%" stopColor="#831843" />
+                                                <stop offset="100%" stopColor="#4c1d95" />
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <span className="cinzel text-4xl font-black text-white glow-text">{loading}%</span>
                                     </div>
                                 </div>
-                                <p className="text-gold-accent text-sm tracking-[0.5em] animate-pulse">READING ASTROLOGICAL ALIGNMENT...</p>
+                                <p className="text-gold/60 tracking-[1.5em] text-xs uppercase animate-pulse">Reading the celestial script...</p>
                             </div>
                         )}
 
                         {view === 'result' && result && (
-                            <div className="fade-in space-y-12 max-h-[92vh] overflow-y-auto pb-16 pr-4 custom-scroll">
-                                {/* 個人鑑定セクション */}
-                                <div className="oracle-card p-10 md:p-16 rounded-[4rem]">
-                                    <div className="flex flex-col md:flex-row gap-12 items-start">
-                                        <div className="w-full md:w-1/3 text-center sticky top-0">
-                                            <ZodiacIcon name={result.s1.sign} className="w-48 h-48 text-gold-accent mx-auto mb-8 filter drop-shadow-[0_0_15px_rgba(212,175,55,0.3)]" />
-                                            <h2 className="text-5xl font-bold text-gold-accent mb-4 glow-text">{result.s1.sign}</h2>
-                                            <p className="text-sm text-gold-accent/50 cinzel tracking-widest mb-10">{result.s1.dates}</p>
-                                            <div className="inline-block px-4 py-1 border border-gold-accent/30 rounded-full text-[10px] tracking-widest text-gold-accent/60">
-                                                ELEMENT: {result.s1.element}
+                            <div className="fade-in space-y-10">
+                                <div className="oracle-card p-10 md:p-20 rounded-[4rem]">
+                                    <div className="flex flex-col md:flex-row items-center justify-around gap-12 mb-24">
+                                        <div className="text-center group">
+                                            <div className="text-8xl mb-4 zodiac-icon">{ZODIAC_SYMBOLS[result.sign1]}</div>
+                                            <div className="text-gold tracking-[0.4em] font-black text-xl mb-1">{result.sign1}</div>
+                                            <div className="cinzel text-[10px] text-white/40 tracking-[0.5em]">{mode === 'single' ? 'THE ORIGIN' : 'THE ORIGIN'}</div>
+                                        </div>
+                                        {mode === 'compatibility' && (
+                                            <>
+                                                <div className="text-6xl text-white/10 cinzel font-thin animate-bounce">❤</div>
+                                                <div className="text-center group">
+                                                    <div className="text-8xl mb-4 zodiac-icon">{ZODIAC_SYMBOLS[result.sign2]}</div>
+                                                    <div className="text-gold tracking-[0.4em] font-black text-xl mb-1">{result.sign2}</div>
+                                                    <div className="cinzel text-[10px] text-white/40 tracking-[0.5em]">THE PARTNER</div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-16">
+                                        <section className="bg-white/5 p-10 rounded-[3rem] border border-white/10">
+                                            <h3 className="cinzel text-pink-400 text-xs tracking-[0.8em] font-black mb-10 text-center uppercase">I. 魂の深層神託</h3>
+                                            <p className="text-lg md:text-2xl text-white/90 leading-[2.4] tracking-widest text-justify font-light">
+                                                {result.oracle.soul}
+                                            </p>
+                                        </section>
+
+                                        {/* 共通の項目 */}
+                                        <div className="grid md:grid-cols-2 gap-10">
+                                            <div className="bg-indigo-900/30 p-12 rounded-[2rem] border border-indigo-500/20">
+                                                <h4 className="cinzel text-indigo-300 text-[10px] tracking-widest mb-6 font-black uppercase">II. 宿命の転換</h4>
+                                                <p className="text-sm text-indigo-100/70 leading-relaxed tracking-widest italic">{result.oracle.fortune}</p>
+                                            </div>
+                                            <div className="bg-purple-900/30 p-12 rounded-[2rem] border border-purple-500/20">
+                                                <h4 className="cinzel text-purple-300 text-[10px] tracking-widest mb-6 font-black uppercase">III. 日常の調律</h4>
+                                                <p className="text-sm text-purple-100/70 leading-relaxed tracking-widest italic">{result.oracle.daily}</p>
                                             </div>
                                         </div>
-                                        
-                                        <div className="w-full md:w-2/3 space-y-12">
-                                            <section>
-                                                <h3 className="text-gold-accent text-xs font-bold tracking-[0.4em] mb-6 border-l-4 border-gold-accent pl-5 uppercase">宿命の本質的刻印</h3>
-                                                <p className="leading-[2.2] text-indigo-50/90 text-[15px] text-justify">{result.s1.basic}</p>
-                                            </section>
 
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                                <div className="p-8 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-                                                    <h4 className="text-[#ff69b4] text-[10px] font-bold tracking-[0.3em] uppercase mb-4">愛の福音と魂の引力</h4>
-                                                    <p className="text-sm leading-[1.8] text-indigo-100/70">{result.s1.love}</p>
+                                        {/* シングルモード限定：詳細項目 */}
+                                        {mode === 'single' && (
+                                            <div className="space-y-10 fade-in">
+                                                <div className="grid md:grid-cols-2 gap-10">
+                                                    <div className="bg-white/5 p-12 rounded-[2rem] border border-white/5">
+                                                        <h4 className="cinzel text-blue-300 text-[10px] tracking-widest mb-6 font-black uppercase">IV. 深層の精神構造</h4>
+                                                        <p className="text-sm text-white/70 leading-relaxed tracking-widest">{result.oracle.mental}</p>
+                                                    </div>
+                                                    <div className="bg-white/5 p-12 rounded-[2rem] border border-white/5">
+                                                        <h4 className="cinzel text-emerald-300 text-[10px] tracking-widest mb-6 font-black uppercase">V. 社会的到達点</h4>
+                                                        <p className="text-sm text-white/70 leading-relaxed tracking-widest">{result.oracle.social}</p>
+                                                    </div>
                                                 </div>
-                                                <div className="p-8 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-                                                    <h4 className="text-[#00f7ff] text-[10px] font-bold tracking-[0.3em] uppercase mb-4">天命としての職能</h4>
-                                                    <p className="text-sm leading-[1.8] text-indigo-100/70">{result.s1.work}</p>
+                                                <div className="grid md:grid-cols-2 gap-10">
+                                                    <div className="bg-white/5 p-12 rounded-[2rem] border border-white/5">
+                                                        <h4 className="cinzel text-rose-300 text-[10px] tracking-widest mb-6 font-black uppercase">VI. 愛と調和の誓約</h4>
+                                                        <p className="text-sm text-white/70 leading-relaxed tracking-widest">{result.oracle.love}</p>
+                                                    </div>
+                                                    <div className="bg-white/5 p-12 rounded-[2rem] border border-white/5">
+                                                        <h4 className="cinzel text-amber-300 text-[10px] tracking-widest mb-6 font-black uppercase">VII. 試練と克服の鍵</h4>
+                                                        <p className="text-sm text-white/70 leading-relaxed tracking-widest">{result.oracle.key}</p>
+                                                    </div>
                                                 </div>
                                             </div>
+                                        )}
 
-                                            <div className="p-8 rounded-3xl bg-gradient-to-br from-gold-accent/10 to-transparent border border-gold-accent/20">
-                                                <p className="text-lg italic font-medium text-gold-accent/90 leading-relaxed text-center">
-                                                    「 {result.s1.advice} 」
-                                                </p>
+                                        {/* 相性モード限定：四層分析 */}
+                                        {mode === 'compatibility' && (
+                                            <div className="space-y-10">
+                                                <h3 className="cinzel text-gold text-xs tracking-[1em] font-black text-center uppercase">IV. 魂の共鳴・四層分析</h3>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    {result.comp.map((c, i) => (
+                                                        <div key={i} className="bg-white/5 p-8 rounded-2xl border border-white/5 hover:border-gold/30 transition-all">
+                                                            <div className="flex justify-between items-end mb-4">
+                                                                <span className="text-[10px] text-white/40 font-black tracking-widest">{c.title}</span>
+                                                                <span className="cinzel text-3xl text-gold font-black">{c.val}</span>
+                                                            </div>
+                                                            <div className="w-full bg-white/5 h-1 rounded-full mb-6 overflow-hidden">
+                                                                <div className="h-full bg-gradient-to-r from-pink-500 to-indigo-500" style={{width: c.val}} />
+                                                            </div>
+                                                            <p className="text-xs text-white/60 leading-relaxed">{c.desc}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
+                                        )}
+
+                                        <div className="text-center pt-20 border-t border-white/10">
+                                            <p className="text-2xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gold via-white to-gold leading-relaxed mb-16 px-4">
+                                                「{result.final}」
+                                            </p>
+                                            <button onClick={() => { window.scrollTo(0,0); setView('input'); }} 
+                                                    className="cinzel text-[10px] tracking-[1.5em] text-white/20 hover:text-white transition-all uppercase">
+                                                ― REAWAKEN THE STARS ―
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* 相性鑑定セクション */}
-                                {mode === 'compatibility' && result.s2 && (
-                                    <div className="oracle-card p-12 md:p-20 rounded-[4rem] bg-gradient-to-b from-[#0a051a] to-black border-t-2 border-gold-accent/40">
-                                        <div className="text-center mb-16">
-                                            <p className="text-[10px] text-gold-accent/40 tracking-[0.8em] font-bold mb-8 uppercase">Celestial Compatibility</p>
-                                            <div className="flex justify-center items-center gap-10 mb-10">
-                                                <div className="text-center">
-                                                    <ZodiacIcon name={result.s1.sign} className="w-16 h-16 text-gold-accent/40 mb-2" />
-                                                    <span className="text-[10px] text-gold-accent/60">{result.s1.sign}</span>
-                                                </div>
-                                                <div className="relative">
-                                                    <div className="cinzel text-7xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#ff0080] to-[#7928ca] glow-text">{result.comp.score}</div>
-                                                    <span className="absolute -top-2 -right-4 text-white/40 cinzel text-xl">%</span>
-                                                </div>
-                                                <div className="text-center">
-                                                    <ZodiacIcon name={result.s2.sign} className="w-16 h-16 text-gold-accent/40 mb-2" />
-                                                    <span className="text-[10px] text-gold-accent/60">{result.s2.sign}</span>
-                                                </div>
-                                            </div>
-                                            <h2 className="text-2xl md:text-4xl font-bold text-white tracking-[0.2em] mb-4">「 {result.comp.title} 」</h2>
-                                        </div>
-
-                                        <div className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12">
-                                            {[
-                                                { t: '宿命の絆（Karmic Bond）', c: result.comp.bond },
-                                                { t: '精神的共鳴（Mental Echo）', c: result.comp.mental },
-                                                { t: '現実的調和（Physical Flow）', c: result.comp.action },
-                                                { t: '不和の克服（Trial & Error）', c: result.comp.trial },
-                                            ].map((s, i) => (
-                                                <div key={i} className="space-y-4">
-                                                    <h4 className="text-gold-accent/70 text-[11px] tracking-[0.3em] font-bold uppercase border-b border-gold-accent/20 pb-2">{s.t}</h4>
-                                                    <p className="text-[13px] leading-[2] text-indigo-50/70 text-justify">{s.c}</p>
-                                                </div>
-                                            ))}
-                                            <div className="md:col-span-2 mt-8 p-10 bg-white/5 rounded-[2rem] border border-white/5 text-center">
-                                                <h4 className="text-gold-accent text-xs tracking-[0.5em] font-bold mb-4 uppercase">未来への聖なる神託</h4>
-                                                <p className="text-lg md:text-xl text-indigo-100 font-light italic leading-relaxed">
-                                                    {result.comp.oracle}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                <button 
-                                    onClick={() => setView('input')} 
-                                    className="w-full py-8 text-[11px] tracking-[1em] text-gold-accent/40 hover:text-gold-accent transition-all duration-700 cinzel font-bold">
-                                    ― RETURN TO THE ETERNITY ―
-                                </button>
                             </div>
                         )}
                     </div>
