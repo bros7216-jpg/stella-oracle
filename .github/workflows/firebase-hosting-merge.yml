@@ -7,14 +7,26 @@ jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4 # リポジトリのコードを取得
+      - uses: actions/checkout@v4
 
-      # Firebase Hosting へのデプロイを実行
+      # Node.js 20を明示的に使用
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      # 依存関係のインストール
+      - name: Install dependencies
+        run: npm ci
+
+      # ビルドの実行（エラーを無視せず確実に実行）
+      - name: Build project
+        run: npm run build
+
+      # Firebaseへのデプロイ
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_STELLA_ORACLE }}'
           channelId: live
           projectId: stella-oracle-67055
-          # 公開するディレクトリを「public」から「.」(ルート)に変更
-          entryPoint: .
